@@ -1,12 +1,14 @@
 import json
 import csv
 from bs4 import BeautifulSoup
+from pathlib import Path
 import requests
 
+FNAME_USER_FROM_POST = 'user_metadata_from_posts.csv'
 
 class Scraper(requests.Session):
     user_data_template = {
-        'url': None,
+        'post_url': None,
         'user_handle':None,
         'user_name': None,
         'user_profile_pic_link': None
@@ -17,25 +19,27 @@ class Scraper(requests.Session):
         try:
             resp.raise_for_status()
         except requests.HTTPError as err:
-            print("{url} ERROR".format(url=err))
             # do we skip or raise?? I think it depends on how the api reacts to the scraping
-            js_data = {}
+            if resp.status_code == 404:
+                print(url, "is private or deleted. Mocking the data with `None` values")
+                owner = {}
+            else:
+                # blacklist/whatever error? TODO: need to figure this out
+                raise
         else:
             js_data = self._extract_js_data_from_resp(resp)
-        try:
-            owner = js_data['entry_data']['PostPage'][0]['graphql']['shortcode_media']['owner']
-        except KeyError as err:
-            print("Error getting data for url", url)
-            print(err)
-            print("Mocking the data with `None` values")
-            owner = {}
+            try:
+                owner = js_data['entry_data']['PostPage'][0]['graphql']['shortcode_media']['owner']
+            except KeyError as err:
+                raise ValueError("Error getting data for ",
+                                 url,
+                                 "despite it should be ok. CHECK THIS POST MANUALLY")
 
         data = Scraper.user_data_template.copy()
-        data['url'] = url
+        data['post_url'] = url
         data['user_handle'] = owner.get('username')
         data['user_name'] = owner.get('full_name')
         data['user_profile_pic_link'] = owner.get('profile_pic_url')
-
         return data
 
     @staticmethod
@@ -50,5 +54,19 @@ class Scraper(requests.Session):
         js_data =  json.loads('{{{}}}'.format(raw_js_data.text.split('{', maxsplit=1)[1].rsplit('}', maxsplit=1)[0]))
         return js_data
 
-def main(params):
-    pass
+def main(datadir='/data'):
+    scraper = Scraper()
+    inpath = Path(datadir) / 'in/tables/' / FNAME_USER_FROM_POST
+    outpath = Path(datadir) / 'out/tables' / FNAME_USER_FROM_POST
+    # we use scraper as context manager to reuse underlying tcp connection
+    with open(inpath, 'r') as inf,  open(outpath, 'w') as outf,  scraper:
+        reader = csv.DictReader(inf)
+        writer = csv.DictWriter(outf, fieldnames=scraper.user_data_template.keys())
+        writer.writeheader()
+        for post in reader:
+            data = scraper.user_metadata_from_post(post['post_url'])
+            writer.writerow(data)
+
+    return outpath
+
+
