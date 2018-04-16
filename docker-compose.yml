@@ -1,0 +1,14 @@
+version: '2'
+services:
+  # for development purposes
+  dev:
+    build: .
+    image: "pocin/kbc-ex-instagram-scraper:dev"
+    env_file:
+      - .env
+    volumes:
+        - ./:/code
+        - ./data/in/tables/:/data/in/tables/
+        - ./data/out/tables/:/data/out/tables/
+    command:
+      - /bin/sh
