@@ -70,6 +70,9 @@ def main(datadir='/data'):
             data = scraper.user_metadata_from_post(post['post_link'])
             writer.writerow(data)
 
+    with open(str(inpath) + '.manifest', 'w') as manif:
+        json.dump({"incremental": True, "primary_key": ["post_link"]}, manif)
+
     return outpath
 
 

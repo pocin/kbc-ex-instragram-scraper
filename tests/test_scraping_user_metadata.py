@@ -51,3 +51,4 @@ def test_scraping_end_to_end_main_function(tmpdir):
 
     assert len(lines) == 2
     assert lines[0].keys() == Scraper.user_data_template.keys()
+    assert os.path.isfile(incsv.strpath + '.manifest')
