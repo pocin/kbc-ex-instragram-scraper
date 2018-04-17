@@ -1,4 +1,7 @@
 import json
+import os
+import sys
+import traceback
 import csv
 from bs4 import BeautifulSoup
 from pathlib import Path
@@ -68,5 +71,16 @@ def main(datadir='/data'):
             writer.writerow(data)
 
     return outpath
+
+
+if __name__ == "__main__":
+    try:
+        main(os.environ['KBC_DATADIR'])
+    except (KeyError, ValueError, requests.ConnectionError, requests.HTTPError) as err:
+        print(err)
+        sys.exit(1)
+    except:
+        traceback.print_exc()
+        sys.exit(2)
 
 
