@@ -8,7 +8,7 @@ FNAME_USER_FROM_POST = 'user_metadata_from_posts.csv'
 
 class Scraper(requests.Session):
     user_data_template = {
-        'post_url': None,
+        'post_link': None,
         'user_handle':None,
         'user_name': None,
         'user_profile_pic_link': None
@@ -36,7 +36,7 @@ class Scraper(requests.Session):
                                  "despite it should be ok. CHECK THIS POST MANUALLY")
 
         data = Scraper.user_data_template.copy()
-        data['post_url'] = url
+        data['post_link'] = url
         data['user_handle'] = owner.get('username')
         data['user_name'] = owner.get('full_name')
         data['user_profile_pic_link'] = owner.get('profile_pic_url')
@@ -64,7 +64,7 @@ def main(datadir='/data'):
         writer = csv.DictWriter(outf, fieldnames=scraper.user_data_template.keys())
         writer.writeheader()
         for post in reader:
-            data = scraper.user_metadata_from_post(post['post_url'])
+            data = scraper.user_metadata_from_post(post['post_link'])
             writer.writerow(data)
 
     return outpath

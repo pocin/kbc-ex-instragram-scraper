@@ -29,11 +29,11 @@ def test_scraping_invalid_post_returns_empty_data(capsys):
 
     assert data.keys() == Scraper.user_data_template.keys()
     assert data['user_handle'] is None
-    assert data['post_url'] == url
+    assert data['post_link'] == url
 
 def test_scraping_end_to_end_main_function(tmpdir):
     incsv = tmpdir.mkdir('in').mkdir('tables').join(main.FNAME_USER_FROM_POST)
-    incsv.write('''post_url,foo
+    incsv.write('''post_link,foo
 {valid},SOMETHING IGNORED
 {invalid},"NOTHINGHERE"'''.format(valid=VALID['post_url'], invalid=INVALID['post_url']))
 
@@ -44,9 +44,9 @@ def test_scraping_end_to_end_main_function(tmpdir):
         lines = list(csv.DictReader(outf))
 
     assert lines[0]['user_handle'] == VALID['post_user_handle']
-    assert lines[0]['post_url'] == VALID['post_url']
+    assert lines[0]['post_link'] == VALID['post_url']
 
-    assert lines[1]['post_url'] == INVALID['post_url']
+    assert lines[1]['post_link'] == INVALID['post_url']
     assert lines[1]['user_handle'] == '' # None is translated to empty string
 
     assert len(lines) == 2
