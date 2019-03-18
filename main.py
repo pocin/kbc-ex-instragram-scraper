@@ -30,13 +30,18 @@ class Scraper(requests.Session):
                 # blacklist/whatever error? TODO: need to figure this out
                 raise
         else:
-            js_data = self._extract_js_data_from_resp(resp)
             try:
-                owner = js_data['entry_data']['PostPage'][0]['graphql']['shortcode_media']['owner']
-            except KeyError as err:
-                raise ValueError("Error getting data for ",
-                                 url,
-                                 "despite it should be ok. CHECK THIS POST MANUALLY")
+                js_data = self._extract_js_data_from_resp(resp)
+            except IndexError:
+                print("Error getting data from js variable for post", url)
+                owner = {}
+            else:
+                try:
+                    owner = js_data['entry_data']['PostPage'][0]['graphql']['shortcode_media']['owner']
+                except KeyError as err:
+                    raise ValueError("Error getting data for ",
+                                     url,
+                                     "despite it should be ok. CHECK THIS POST MANUALLY")
 
         data = Scraper.user_data_template.copy()
         data['post_link'] = url
