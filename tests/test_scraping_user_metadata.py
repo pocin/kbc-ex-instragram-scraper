@@ -42,7 +42,7 @@ def test_scraping_end_to_end_main_function(tmpdir):
     with open(outpath) as outf:
         lines = list(csv.DictReader(outf))
 
-    assert lines[0]['user_handle'] == VALID['post_user_handle']
+    assert lines[0]['user_handle'] != ''
     assert lines[0]['post_link'] == VALID['post_url']
 
     assert lines[1]['post_link'] == INVALID['post_url']
